@@ -28,31 +28,23 @@ public class PlayerController : MonoBehaviour
             if (grounded)
             {
                 GetComponent<Rigidbody2D>().velocity = new Vector2(GetComponent<Rigidbody2D>().velocity.x, jump);
+                grounded = false;
             }
+            
         }
 
-        moveVelocity = 0;
-
-        //Left Right Movement
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
-        {
-            moveVelocity = -speed;
-        }
-        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
-        {
-            moveVelocity = speed;
-        }
-
+        moveVelocity = Input.GetAxis("Horizontal") * speed;
+        
         GetComponent<Rigidbody2D>().velocity = new Vector2(moveVelocity, GetComponent<Rigidbody2D>().velocity.y);
 
     }
-    //Check if Grounded
-    void OnTriggerEnter2D()
+
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        grounded = true;
-    }
-    void OnTriggerExit2D()
-    {
-        grounded = false;
+        if(collision.gameObject.CompareTag("Ground"))
+        {
+            grounded = true;
+        }
+        
     }
 }
