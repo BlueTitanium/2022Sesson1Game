@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class BossController : MonoBehaviour
 {
+    private Rigidbody2D rb2d;
     public GameObject target;
     public Vector3 direction;
     public float[] cooldowns;
@@ -14,16 +15,22 @@ public class BossController : MonoBehaviour
     public float normalSpeed;
     public float maxSpeed = 20f;
     public bool lunge = false;
+    public GameObject projectilePrefab;
+    public GameObject Shield;
+    public GameObject Shockwave;
     // Start is called before the first frame update
     void Start()
     {
+        rb2d = GetComponent<Rigidbody2D>();
         currentHp = maxHp;
         speed = normalSpeed;
+        Physics2D.IgnoreCollision(target.GetComponent<CapsuleCollider2D>(), GetComponent<BoxCollider2D>(),true);
     }
 
     // Update is called once per frame
     void Update()
     {
+        
         if(followTarget && !lunge){
             transform.position = Vector3.MoveTowards(transform.position, target.transform.position, Time.deltaTime*speed);
         } else if (followTarget && lunge){
@@ -33,10 +40,44 @@ public class BossController : MonoBehaviour
             direction = target.transform.position - transform.position;
             StartCoroutine(Lunge());
         }
+        if(Input.GetKeyDown(KeyCode.E)){
+            SpawnHoming();
+        }
+        if(Input.GetKeyDown(KeyCode.R)){
+
+            ShockwaveAttack();
+        }
     }
 
     private void FixedUpdate() {
         
+    }
+
+    private void OnCollisionEnter2D(Collision2D other) {
+        if(other.gameObject.CompareTag("Ground")){
+            //Shield.GetComponent<Shield>().SetGravity(0f);
+            rb2d.gravityScale = 0f;
+            StartCoroutine(Shockwave.GetComponent<Shockwave>().wave());
+            Shield.SetActive(true);
+            followTarget = true;
+        }
+    }
+    
+    void ShockwaveAttack(){
+        followTarget = false;
+        rb2d.gravityScale = 3f;
+        //Shield.GetComponent<Shield>().SetGravity(1f);
+        Shield.SetActive(false);
+        //yield return StartCoroutine(Shockwave.GetComponent<Shockwave>().wave());
+        //followTarget = true;
+    }
+
+    void SpawnHoming(){
+        GameObject proj = Instantiate(projectilePrefab, transform.position, projectilePrefab.transform.rotation);
+        proj.GetComponent<Projectile>().homing = true;
+        proj.GetComponent<Projectile>().boss = this.gameObject;
+        proj.GetComponent<Projectile>().target = target;
+        proj.GetComponent<Projectile>().SendToTarget();
     }
 
     IEnumerator Lunge(){
