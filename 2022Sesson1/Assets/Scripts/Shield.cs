@@ -5,14 +5,15 @@ using UnityEngine;
 public class Shield : MonoBehaviour
 {
     public List<GameObject> shields;
-    public float radius = 20f;
+    public float radius = 10f;
+    public float speed = 1f;
     // Start is called before the first frame update
     void Start()
     {
         for (int i = 0; i < shields.Count; i++)
         {
             float angle = i * Mathf.PI * 2f / shields.Count;
-            shields[i].transform.position = (new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius));
+            shields[i].transform.localPosition = (new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius));
         }
     }
     public void SetGravity(float grav){
@@ -24,15 +25,15 @@ public class Shield : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.Rotate(new Vector3(0,0,1));
+        transform.Rotate(new Vector3(0,0,1) * speed);
     }
 
-    void ChangeRadius(float r){
+    public void ChangeRadius(float r){
         radius = r;
         for (int i = 0; i < shields.Count; i++)
         {
             float angle = i * Mathf.PI * 2f / shields.Count;
-            shields[i].transform.position = (new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius));
+            shields[i].transform.localPosition = (new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius));
         }
     }
 }

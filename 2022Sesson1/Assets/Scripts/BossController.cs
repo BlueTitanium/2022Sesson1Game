@@ -32,25 +32,34 @@ public class BossController : MonoBehaviour
     {
         
         if(followTarget && !lunge){
-            transform.position = Vector3.MoveTowards(transform.position, target.transform.position, Time.deltaTime*speed);
+            transform.position = Vector3.MoveTowards(transform.position, new Vector3(target.transform.position.x,target.transform.position.y+Shield.GetComponent<Shield>().radius), Time.deltaTime*speed);
         } else if (followTarget && lunge){
             transform.Translate(new Vector3(direction.normalized.x, direction.normalized.y*.5f,0) * Time.deltaTime*speed);
+        } else if (!followTarget && lunge) {
+            transform.position = Vector3.MoveTowards(transform.position, new Vector3(target.transform.position.x, 0, 0), Time.deltaTime*speed);
         }
         if(Input.GetKeyDown(KeyCode.Q)){
             direction = target.transform.position - transform.position;
-            StartCoroutine(Lunge());
+            StartCoroutine(Lunge(maxSpeed));
         }
         if(Input.GetKeyDown(KeyCode.E)){
-            SpawnHoming();
+            StartCoroutine(RangeAttack(false,5));
         }
         if(Input.GetKeyDown(KeyCode.R)){
-
-            ShockwaveAttack();
+            StartCoroutine(ShockwaveAttack());
+        }
+        if(Input.GetKeyDown(KeyCode.T)){
+            StartCoroutine(RangeAttack(true,10));
         }
     }
 
     private void FixedUpdate() {
         
+    }
+
+    IEnumerator decide(){
+
+        yield return new WaitForSeconds(1f);
     }
 
     private void OnCollisionEnter2D(Collision2D other) {
@@ -59,17 +68,33 @@ public class BossController : MonoBehaviour
             rb2d.gravityScale = 0f;
             StartCoroutine(Shockwave.GetComponent<Shockwave>().wave());
             Shield.SetActive(true);
+            Shield.GetComponent<Shield>().ChangeRadius(Shield.GetComponent<Shield>().radius);
+            Shield.transform.localPosition = new Vector3(0,0,0);
             followTarget = true;
         }
     }
     
-    void ShockwaveAttack(){
+    IEnumerator ShockwaveAttack(){
         followTarget = false;
+        yield return StartCoroutine(Lunge(maxSpeed*3));
         rb2d.gravityScale = 3f;
         //Shield.GetComponent<Shield>().SetGravity(1f);
         Shield.SetActive(false);
         //yield return StartCoroutine(Shockwave.GetComponent<Shockwave>().wave());
         //followTarget = true;
+    }
+
+    IEnumerator RangeAttack(bool CrazyMode, int numToSpawn){
+        if(CrazyMode){
+            followTarget=false;
+            yield return StartCoroutine(Lunge(maxSpeed*3));
+        }
+        for (int i = 0; i < numToSpawn; i++)
+        {
+            yield return new WaitForSeconds(0.5f);
+            SpawnHoming();   
+        }
+        followTarget = true;
     }
 
     void SpawnHoming(){
@@ -80,8 +105,8 @@ public class BossController : MonoBehaviour
         proj.GetComponent<Projectile>().SendToTarget();
     }
 
-    IEnumerator Lunge(){
-        speed = Mathf.Lerp(normalSpeed,maxSpeed,.5f);
+    IEnumerator Lunge(float nextSpeed){
+        speed = Mathf.Lerp(normalSpeed,nextSpeed,.5f);
         lunge = true;
         yield return new WaitForSeconds(.5f);
         lunge = false;
@@ -109,6 +134,6 @@ public class BossController : MonoBehaviour
     + Shielding Projectiles + Shockwave
     33% hp
     Phase 3
-    + shockwave
+    + Teleport
     */
 }
